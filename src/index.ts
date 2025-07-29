@@ -29,10 +29,21 @@ dotenv.config();
 
 const app = express();
 const server = createServer(app);
+
+// CORS configuration
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'https://shop-management-web.onrender.com',
+  'https://shop-ssv-web.onrender.com',
+  process.env.FRONTEND_URL
+].filter((origin): origin is string => Boolean(origin));
+
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
-    methods: ["GET", "POST"]
+    origin: allowedOrigins,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    credentials: true
   }
 });
 
@@ -47,8 +58,20 @@ const limiter = rateLimit({
 app.use(helmet());
 app.use(compression());
 app.use(cors({
-  origin: "*", // Allow all origins for development
-  credentials: true
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 app.use(limiter);
 app.use(morgan('combined'));
@@ -107,6 +130,7 @@ const startServer = async () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`📊 API Documentation: http://localhost:${PORT}/api`);
       console.log(`🔗 Health Check: http://localhost:${PORT}/health`);
+      console.log(`🌐 Allowed Origins:`, allowedOrigins);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);
