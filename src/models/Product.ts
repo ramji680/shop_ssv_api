@@ -130,9 +130,8 @@ const productSchema = new Schema<IProduct>({
   timestamps: true
 });
 
-// Index for better query performance
+// Index for better query performance (sku is already indexed by unique: true)
 productSchema.index({ category: 1, isAvailable: 1 });
-productSchema.index({ sku: 1 });
 productSchema.index({ isFeatured: 1 });
 productSchema.index({ sortOrder: 1 });
 

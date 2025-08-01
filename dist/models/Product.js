@@ -136,7 +136,6 @@ const productSchema = new mongoose_1.Schema({
     timestamps: true
 });
 productSchema.index({ category: 1, isAvailable: 1 });
-productSchema.index({ sku: 1 });
 productSchema.index({ isFeatured: 1 });
 productSchema.index({ sortOrder: 1 });
 productSchema.virtual('profitMargin').get(function () {

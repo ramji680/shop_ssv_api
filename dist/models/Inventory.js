@@ -135,7 +135,6 @@ const inventorySchema = new mongoose_1.Schema({
     timestamps: true
 });
 inventorySchema.index({ category: 1, isActive: 1 });
-inventorySchema.index({ sku: 1 });
 inventorySchema.index({ currentStock: 1 });
 inventorySchema.virtual('stockStatus').get(function () {
     if (this.currentStock <= 0)

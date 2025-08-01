@@ -127,9 +127,8 @@ const inventorySchema = new Schema<IInventory>({
   timestamps: true
 });
 
-// Index for better query performance
+// Index for better query performance (sku is already indexed by unique: true)
 inventorySchema.index({ category: 1, isActive: 1 });
-inventorySchema.index({ sku: 1 });
 inventorySchema.index({ currentStock: 1 });
 
 // Virtual for stock status
