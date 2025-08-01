@@ -7,6 +7,7 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
+import mongoose from 'mongoose';
 
 // Import routes
 import authRoutes from './routes/auth';
@@ -143,9 +144,69 @@ startServer();
 // Graceful shutdown
 process.on('SIGTERM', () => {
   console.log('SIGTERM received, shutting down gracefully');
-  server.close(() => {
-    console.log('Process terminated');
+  
+  // Close all socket connections
+  io.close(() => {
+    console.log('Socket.io server closed');
   });
+  
+  // Close HTTP server
+  server.close(() => {
+    console.log('HTTP server closed');
+    
+    // Close database connection
+    if (mongoose.connection.readyState === 1) {
+      mongoose.connection.close().then(() => {
+        console.log('Database connection closed');
+        process.exit(0);
+      }).catch((error) => {
+        console.error('Error closing database connection:', error);
+        process.exit(1);
+      });
+    } else {
+      process.exit(0);
+    }
+  });
+  
+  // Force exit after 30 seconds if graceful shutdown fails
+  setTimeout(() => {
+    console.error('Could not close connections in time, forcefully shutting down');
+    process.exit(1);
+  }, 30000);
+});
+
+// Handle SIGINT (Ctrl+C) for local development
+process.on('SIGINT', () => {
+  console.log('SIGINT received, shutting down gracefully');
+  
+  // Close all socket connections
+  io.close(() => {
+    console.log('Socket.io server closed');
+  });
+  
+  // Close HTTP server
+  server.close(() => {
+    console.log('HTTP server closed');
+    
+    // Close database connection
+    if (mongoose.connection.readyState === 1) {
+      mongoose.connection.close().then(() => {
+        console.log('Database connection closed');
+        process.exit(0);
+      }).catch((error) => {
+        console.error('Error closing database connection:', error);
+        process.exit(1);
+      });
+    } else {
+      process.exit(0);
+    }
+  });
+  
+  // Force exit after 30 seconds if graceful shutdown fails
+  setTimeout(() => {
+    console.error('Could not close connections in time, forcefully shutting down');
+    process.exit(1);
+  }, 30000);
 });
 
 export { io }; 
